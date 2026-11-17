@@ -1,0 +1,8 @@
+{
+  "approved": "1000.00",
+  "payees": [
+    {"project_id": "000101", "legal_entity": "甲法人单位", "branch": "甲单位财务处", "weight": "5", "cap": "300.00"},
+    {"project_id": "000102", "legal_entity": "乙法人单位", "branch": "乙单位本部", "weight": "3", "cap": "500.00"},
+    {"project_id": "000103", "legal_entity": "丙法人单位", "branch": "丙单位项目办", "weight": "2", "cap": "500.00"}
+  ]
+}

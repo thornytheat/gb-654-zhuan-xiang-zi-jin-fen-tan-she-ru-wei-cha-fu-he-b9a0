@@ -1,0 +1,8 @@
+{
+  "approved": "1000.00",
+  "payees": [
+    {"project_id": "000101", "payee": "甲单位（财务处）", "amount": "300.00", "weight": "5", "cap": "300.00"},
+    {"project_id": "000102", "payee": "乙单位", "amount": "420.00", "weight": "3", "cap": "500.00"},
+    {"project_id": "000103", "payee": "丙单位", "amount": "280.00", "weight": "2", "cap": "500.00"}
+  ]
+}

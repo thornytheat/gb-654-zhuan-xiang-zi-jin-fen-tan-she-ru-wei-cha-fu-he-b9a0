@@ -14,6 +14,18 @@
 | M4 金额分摊 | 运行样例并复核证据 | `/api/allocations/calculate` / `/allocations` | `app/modules/m4_allocations/core.py` `app/modules/m4_allocations/service.py` | `tests/test_m4_allocations.py` |
 | M5 尾差裁决 | 运行样例并复核证据 | `/api/remainders/resolve` / `/remainders` | `app/modules/m5_remainders/core.py` `app/modules/m5_remainders/service.py` | `tests/test_m5_remainders.py` |
 | M6 批次复核 | 运行样例并复核证据 | `/api/export/allocations.csv` / `/runs` | `app/modules/m6_runs/core.py` `app/modules/m6_runs/service.py` | `tests/test_m6_runs.py` |
+| M7 财政报送 | 换版、报送、查询回执并恢复 | `/api/reports/contract/switch` / `/api/reports` / `/api/receiver/inbox` / `/reports` | `app/modules/m7_reports/core.py` `app/modules/m7_reports/contracts.py` `app/modules/m7_reports/repository.py` `app/modules/m7_reports/receiver.py` | `tests/test_m7_reports.py` `tests/test_m7_reports_api.py` |
+
+        ## 财政报送契约与接收端
+
+        - 契约 v1：收款单位为合并栏目 `payee`；契约 v2：拆成 `legal_entity` 与 `branch`，缺分支拒收。
+        - 首次报送固定契约版本与原文，此后同一报送换内容返回 `CONTENT_CONFLICT`。
+        - 换版只影响新报送；旧报送按冻结契约恢复，不补新栏、不改写原文。
+        - 切版与新建都在写事务内复核版本，过期一侧返回 `STALE_VERSION`（HTTP 409）。
+        - 回执丢失先 `GET /api/receiver/inbox/{report_id}` 查询，再决定是否按原内容重试；
+          接收端按 `report_id` 幂等收件，重复投递只累加 `duplicate_deliveries`。
+        - 发送中断保留 `PENDING` 状态，`POST /api/reports/{report_id}/recover` 从库存状态续跑。
+        - 分摊复用 M4 的 `allocate`，未改动算法；本地接收端不连接真实财政系统。
 
         ## 陷阱登记
 
@@ -29,6 +41,8 @@
 | TRAP-22 | 真实边界输入 | 朴素处理会错分 | 保留证据并稳定裁决 | `app/modules/m2_eligibility/core.py` | `tests/test_m2_eligibility.py::test_trap_2` |
 | TRAP-24 | 真实边界输入 | 朴素处理会错分 | 保留证据并稳定裁决 | `app/modules/m3_weights/core.py` | `tests/test_m3_weights.py::test_trap_2` |
 | TRAP-26 | 真实边界输入 | 朴素处理会错分 | 保留证据并稳定裁决 | `app/modules/m4_allocations/core.py` | `tests/test_m4_allocations.py::test_trap_2` |
+| TRAP-27 | 换版后旧报送被补新栏或重校验 | 朴素实现会让旧件失联或重复收件 | 冻结契约并先查回执再重试 | `app/modules/m7_reports/core.py` | `tests/test_m7_reports.py::test_old_report_recovers_under_old_contract_after_switch` |
+| TRAP-28 | 切版与新建并发 | 朴素实现可能插入过期版本 | 写事务内复核版本 | `app/modules/m7_reports/repository.py` | `tests/test_m7_reports.py::test_concurrent_switch_and_create_never_mix_versions` |
 
         ## 对账规则
 
